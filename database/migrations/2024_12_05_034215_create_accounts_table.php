@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('agency')->unique();
-            $table->string('number')->unique();
+            $table->string('agency', 10)->unique();
+            $table->string('number', 40)->unique();
             $table->decimal('balance', 15, 2)->default(0);
             $table->decimal('credit_limit', 15, 2)->default(0);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
