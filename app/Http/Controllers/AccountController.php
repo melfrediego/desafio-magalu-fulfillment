@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use Exception;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -26,18 +27,19 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'agency' => 'required|unique:accounts,number|max:10',
+            'agency' => 'required|unique:accounts,agency|max:10',
             'number' => 'required|unique:accounts,number|max:40',
             'balance' => 'required|numeric|min:0',
-            'credit_limit' => 'required|numeric|min:0',
-            'user_id' => 'required|exists:users,id',
-            'bank_id' => 'required|exists:banks,id',
+            'credit_limit' => 'required',
+            'user_id' => 'required',
+            'bank_id' => 'required',
         ]);
 
         try {
             $account = Account::create($request->only('agency', 'number', 'balance', 'credit_limit', 'user_id', 'bank_id'));
             return response()->json($account, 201);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            dd($e->getMessage());
             return response()->json(['error' => 'Erro ao criar conta.'], 500);
         }
     }

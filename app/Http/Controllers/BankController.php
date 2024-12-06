@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bank;
+use Exception;
 use Illuminate\Http\Request;
 
 class BankController extends Controller
@@ -33,7 +34,8 @@ class BankController extends Controller
         try {
             $bank = Bank::create($request->only('code', 'name'));
             return response()->json($bank, 201);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            dd('Erro');
             return response()->json(['error' => 'Erro ao criar banco.'], 500);
         }
     }

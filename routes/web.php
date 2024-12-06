@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+// Redireciona a rota `/` para a rota de API raiz
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/api'); // Redireciona para o endpoint de API
 });
