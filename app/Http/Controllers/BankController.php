@@ -2,84 +2,141 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BankRequest;
 use App\Models\Bank;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class BankController extends Controller
 {
     /**
      * Listar todos os bancos.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         try {
-            $banks = Bank::all();
-            return response()->json($banks, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao listar bancos.'], 500);
+            $banks = Bank::orderBy('id', 'DESC')->paginate(10); // Lista com paginação
+            return response()->json([
+                'status' => true,
+                'banks' => $banks
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Erro ao listar bancos.'
+            ], 404);
         }
     }
 
     /**
      * Criar um novo banco.
+     *
+     * @param BankRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(BankRequest $request): JsonResponse
     {
-        $request->validate([
-            'code' => 'required|unique:banks,code|min:3|max:5',
-            'name' => 'required|max:120',
-        ]);
+        DB::beginTransaction();
 
         try {
-            $bank = Bank::create($request->only('code', 'name'));
-            return response()->json($bank, 201);
+            $bank = Bank::create([
+                'code' => $request->code,
+                'name' => $request->name,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'bank' => $bank,
+                'message' => 'Banco cadastrado com sucesso!'
+            ], 201);
         } catch (Exception $e) {
-            dd('Erro');
-            return response()->json(['error' => 'Erro ao criar banco.'], 500);
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Erro ao criar banco.'
+            ], 400);
         }
     }
 
     /**
      * Exibir um banco específico.
+     *
+     * @param Bank $bank
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Bank $bank)
+    public function show(Bank $bank): JsonResponse
     {
         try {
-            return response()->json($bank, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao exibir banco.'], 500);
+            return response()->json([
+                'status' => true,
+                'bank' => $bank
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Banco não encontrado.'
+            ], 404);
         }
     }
 
     /**
      * Atualizar informações de um banco.
+     *
+     * @param BankRequest $request
+     * @param Bank $bank
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Bank $bank)
+    public function update(BankRequest $request, Bank $bank): JsonResponse
     {
-        $request->validate([
-            'code' => 'sometimes|unique:banks,code,' . $bank->id . '|max:10',
-            'name' => 'sometimes|max:255',
-        ]);
+        DB::beginTransaction();
 
         try {
-            $bank->update($request->only('code', 'name'));
-            return response()->json($bank, 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao atualizar banco.'], 500);
+            $data = $request->only(['code', 'name']);
+
+            $bank->update($data);
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'bank' => $bank,
+                'message' => 'Banco atualizado com sucesso!'
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Erro ao atualizar banco.'
+            ], 400);
         }
     }
 
     /**
      * Excluir um banco.
+     *
+     * @param Bank $bank
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Bank $bank)
+    public function destroy(Bank $bank): JsonResponse
     {
         try {
             $bank->delete();
-            return response()->json(['message' => 'Banco excluído com sucesso.'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao excluir banco.'], 500);
+            return response()->json([
+                'status' => true,
+                'message' => 'Banco excluído com sucesso.'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Erro ao excluir banco.'
+            ], 500);
         }
     }
 }
