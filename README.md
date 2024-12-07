@@ -1,66 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Configurando e Criando Testes Unitários e de Integração no Laravel 10
 
-## About Laravel
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Melfre%20Diego-blue?logo=linkedin)](https://www.linkedin.com/in/melfre-diego/)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## **Sobre o Projeto**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Este projeto refere-se a um **Desafio Técnico para Magalu Fulfillment**, desenvolvido por **Melfre Diego** (Desenvolvedor FullStack Sênior).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## **Configuração do Projeto**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### **1. Instale o Laravel 10**
+Certifique-se de que o Composer está instalado e crie um novo projeto Laravel:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+composer create-project laravel/laravel nome-do-projeto
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### **2. Configure o Banco de Dados**
+#### MySQL
+No arquivo `.env`, configure as credenciais do banco de dados MySQL:
 
-## Laravel Sponsors
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nome_do_banco
+DB_USERNAME=usuario
+DB_PASSWORD=senha
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### PostgreSQL
+Para PostgreSQL, configure o `.env` da seguinte maneira:
 
-### Premium Partners
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=nome_do_banco
+DB_USERNAME=usuario
+DB_PASSWORD=senha
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### **3. Execute as Migrations**
+Crie as tabelas no banco de dados configurado:
 
-## Contributing
+```bash
+php artisan migrate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## **Configuração do Ambiente de Testes**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### **1. Crie o Arquivo `.env.testing`**
+Na raiz do projeto, crie um arquivo chamado `.env.testing` com o seguinte conteúdo:
 
-## Security Vulnerabilities
+```dotenv
+APP_ENV=testing
+DB_CONNECTION=sqlite
+DB_DATABASE=:memory:
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### **2. Execute as Migrations no Ambiente de Testes**
+Certifique-se de que as tabelas estão configuradas para o ambiente de testes:
 
-## License
+```bash
+php artisan migrate --env=testing
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## **Gerando Testes**
+
+### **1. Criar Testes Unitários**
+Crie os arquivos para os testes unitários usando os comandos abaixo:
+
+```bash
+php artisan make:test BankTest --unit
+php artisan make:test AccountTest --unit
+php artisan make:test UserTest --unit
+```
+
+### **2. Criar Testes de Integração**
+Crie os arquivos para os testes de integração com os comandos abaixo:
+
+```bash
+php artisan make:test BankIntegrationTest
+php artisan make:test AccountIntegrationTest
+php artisan make:test UserIntegrationTest
+```
+
+---
+
+## **Rodando Seeders**
+
+### **1. Executar Seeders Específicos**
+Para rodar a seeder de `Bank`, use o comando:
+
+```bash
+php artisan db:seed --class=BankSeeder
+```
+
+### **2. Executar Todos os Seeders**
+Caso deseje executar todas as seeders de uma vez, utilize o comando:
+
+```bash
+php artisan db:seed
+```
+
+### **Nota:**
+Certifique-se de que o banco de dados está configurado corretamente no arquivo `.env` antes de rodar as seeders.
+
+---
+
+## **Executando os Testes**
+
+Para rodar todos os testes criados no projeto, use o comando:
+
+```bash
+php artisan test
+```
+
+---
+
+## **Observações**
+- O ambiente de testes utiliza o banco de dados SQLite em memória para otimizar a execução.
+- Sempre garanta que as migrations estão atualizadas tanto para o ambiente de desenvolvimento quanto para o ambiente de testes antes de executar os testes.
+
+Com este guia, você pode configurar e rodar sua aplicação Laravel 10, criar testes unitários e de integração, e rodar seeders de forma eficiente.
