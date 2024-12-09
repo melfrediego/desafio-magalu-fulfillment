@@ -37,9 +37,11 @@ Route::apiResource('accounts', AccountController::class);
 
 // Transações específicas
 Route::post('/transactions/deposit', [TransactionController::class, 'deposit']);
+Route::post('/transactions/deposit-async', [TransactionController::class, 'depositAsync']);
 Route::post('/transactions/withdraw', [TransactionController::class, 'withdraw']);
+Route::post('/transactions/withdraw-async', [TransactionController::class, 'withdrawAsync']);
 Route::post('/transactions/transfer', [TransactionController::class, 'transfer']);
+Route::post('/transactions/transfer-async', [TransactionController::class, 'transferAsync']);
 Route::post('/transactions/batch', [TransactionController::class, 'processBatchTransactions']);
-
-// Endpoint para reprocessar transações pendentes
 Route::post('/transactions/reprocess', [TransactionController::class, 'reprocessPendingTransactions']);
+Route::get('/transactions/{id}/status', [TransactionController::class, 'getTransactionStatus']);
