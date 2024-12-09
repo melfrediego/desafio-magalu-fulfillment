@@ -22,21 +22,22 @@ class TransactionService
     public function processTransaction(Account $account, string $type, float $amount, ?string $description = null): Transaction
     {
         return DB::transaction(function () use ($account, $type, $amount, $description) {
-            // Bloqueia a conta para evitar concorrência
+            // Bloqueia a conta para evitar inconsistências em transações simultâneas
             $account->lockForUpdate();
 
-            // Calcula saldo disponível
+            // Calcula saldo disponível considerando o limite de crédito
             $availableBalance = $account->balance + $account->credit_limit;
 
-            // Calcula taxas
+            // Calcula taxas associadas à transação
             $fee = $this->calculateFee($type, $amount);
             $totalAmount = $amount + $fee;
 
+            // Valida saldo para saques e transferências
             if (in_array($type, ['withdraw', 'transfer']) && $availableBalance < $totalAmount) {
                 throw new \Exception('Saldo insuficiente, incluindo taxas.');
             }
 
-            // Atualiza saldo
+            // Atualiza saldo da conta
             if ($type === 'withdraw' || $type === 'transfer') {
                 $account->balance -= $totalAmount;
             } elseif ($type === 'deposit') {
@@ -77,12 +78,12 @@ class TransactionService
     private function calculateFee(string $type, float $amount): float
     {
         if ($type === 'withdraw') {
-            return 0.01 * $amount;
+            return 0.01 * $amount; // Taxa de 1% para saques
         } elseif ($type === 'transfer') {
-            return 0.02 * $amount;
+            return 0.02 * $amount; // Taxa de 2% para transferências
         }
 
-        return 0;
+        return 0; // Sem taxas para depósitos
     }
 
     /**
@@ -97,11 +98,11 @@ class TransactionService
     public function transfer(Account $sourceAccount, Account $targetAccount, float $amount, ?string $description = null): void
     {
         DB::transaction(function () use ($sourceAccount, $targetAccount, $amount, $description) {
-            // Bloqueia ambas as contas
+            // Bloqueia as contas de origem e destino
             $sourceAccount->lockForUpdate();
             $targetAccount->lockForUpdate();
 
-            // Débito na conta de origem
+            // Débito da conta de origem
             $this->processTransaction($sourceAccount, 'transfer', $amount, $description);
 
             // Crédito na conta de destino
@@ -134,9 +135,9 @@ class TransactionService
     /**
      * Reprocessa todas as transações pendentes.
      *
-     * Este método verifica as transações pendentes (status: 'pending') e tenta
-     * processá-las novamente. Caso a transação seja bem-sucedida, o status é
-     * atualizado para 'success'. Caso falhe novamente, o status permanece como 'pending'.
+     * Transações pendentes são tentadas novamente.
+     * Caso bem-sucedida, o status é atualizado para 'success'.
+     * Caso falhe, o status permanece 'pending'.
      */
     public function reprocessPendingTransactions()
     {
@@ -147,7 +148,7 @@ class TransactionService
                 DB::transaction(function () use ($pendingTransaction) {
                     $account = Account::findOrFail($pendingTransaction->account_id);
 
-                    // Tenta processar novamente
+                    // Processa novamente
                     $this->processTransaction(
                         $account,
                         $pendingTransaction->type,
@@ -155,26 +156,31 @@ class TransactionService
                         $pendingTransaction->description
                     );
 
-                    // Atualiza o status
+                    // Atualiza status
                     $pendingTransaction->update(['status' => 'success']);
                 });
 
                 // Log de sucesso
                 Log::channel('audit')->info("Transação reprocessada com sucesso.", [
                     'transaction_id' => $pendingTransaction->id,
-                    'account_id' => $pendingTransaction->account_id,
-                    'type' => $pendingTransaction->type,
-                    'amount' => $pendingTransaction->amount,
                 ]);
             } catch (\Exception $e) {
                 // Log de erro
                 Log::error("Erro ao reprocessar transação: {$e->getMessage()}", [
                     'transaction_id' => $pendingTransaction->id,
-                    'account_id' => $pendingTransaction->account_id,
-                    'type' => $pendingTransaction->type,
-                    'amount' => $pendingTransaction->amount,
                 ]);
             }
         }
+    }
+
+    /**
+     * Consulta o status de uma transação.
+     *
+     * @param int $transactionId
+     * @return Transaction|null
+     */
+    public function getTransactionStatus(int $transactionId): ?Transaction
+    {
+        return Transaction::find($transactionId);
     }
 }
