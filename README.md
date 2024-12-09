@@ -1,24 +1,30 @@
 
-# Configurando e Criando Testes Unitários e de Integração no Laravel 10
+# Desafio Técnico para Magalu Fulfillment
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Melfre%20Diego-blue?logo=linkedin)](https://www.linkedin.com/in/melfre-diego/)
-
-## **Sobre o Projeto**
 
 Este projeto refere-se a um **Desafio Técnico para Magalu Fulfillment**, desenvolvido por **Melfre Diego** (Desenvolvedor FullStack Sênior).
 
 ---
 
-## **Configuração do Projeto**
+## **Como Rodar o Projeto**
 
-### **1. Instale o Laravel 10**
-Certifique-se de que o Composer está instalado e crie um novo projeto Laravel:
+### **1. Clonar o Repositório**
+Clone o repositório do projeto em sua máquina local:
 
 ```bash
-composer create-project laravel/laravel nome-do-projeto
+git clone <URL_DO_REPOSITORIO>
+cd nome-do-projeto
 ```
 
-### **2. Configure o Banco de Dados**
+### **2. Instalar Dependências**
+Certifique-se de que o Composer está instalado. Instale as dependências do projeto:
+
+```bash
+composer install
+```
+
+### **3. Configurar o Banco de Dados**
 #### MySQL
 No arquivo `.env`, configure as credenciais do banco de dados MySQL:
 
@@ -43,18 +49,33 @@ DB_USERNAME=usuario
 DB_PASSWORD=senha
 ```
 
-### **3. Execute as Migrations**
+### **4. Executar Migrations**
 Crie as tabelas no banco de dados configurado:
 
 ```bash
 php artisan migrate
 ```
 
+### **5. Executar Seeders**
+#### Rodar Seeder Específico
+Para rodar a seeder de `Bank`, execute:
+
+```bash
+php artisan db:seed --class=BankSeeder
+```
+
+#### Rodar Todos os Seeders
+Caso deseje executar todas as seeders de uma vez:
+
+```bash
+php artisan db:seed
+```
+
 ---
 
 ## **Configuração do Ambiente de Testes**
 
-### **1. Crie o Arquivo `.env.testing`**
+### **1. Criar o Arquivo `.env.testing`**
 Na raiz do projeto, crie um arquivo chamado `.env.testing` com o seguinte conteúdo:
 
 ```dotenv
@@ -63,7 +84,7 @@ DB_CONNECTION=sqlite
 DB_DATABASE=:memory:
 ```
 
-### **2. Execute as Migrations no Ambiente de Testes**
+### **2. Executar Migrations no Ambiente de Testes**
 Certifique-se de que as tabelas estão configuradas para o ambiente de testes:
 
 ```bash
@@ -72,46 +93,16 @@ php artisan migrate --env=testing
 
 ---
 
-## **Gerando Testes**
+## **Executando o Projeto**
 
-### **1. Criar Testes Unitários**
-Crie os arquivos para os testes unitários usando os comandos abaixo:
-
-```bash
-php artisan make:test BankTest --unit
-php artisan make:test AccountTest --unit
-php artisan make:test UserTest --unit
-```
-
-### **2. Criar Testes de Integração**
-Crie os arquivos para os testes de integração com os comandos abaixo:
+Inicie o servidor do Laravel na porta padrão (8000):
 
 ```bash
-php artisan make:test BankIntegrationTest
-php artisan make:test AccountIntegrationTest
-php artisan make:test UserIntegrationTest
+php artisan serve
 ```
 
----
-
-## **Rodando Seeders**
-
-### **1. Executar Seeders Específicos**
-Para rodar a seeder de `Bank`, use o comando:
-
-```bash
-php artisan db:seed --class=BankSeeder
-```
-
-### **2. Executar Todos os Seeders**
-Caso deseje executar todas as seeders de uma vez, utilize o comando:
-
-```bash
-php artisan db:seed
-```
-
-### **Nota:**
-Certifique-se de que o banco de dados está configurado corretamente no arquivo `.env` antes de rodar as seeders.
+Acesse o projeto em seu navegador através de:  
+[http://localhost:8000](http://localhost:8000)
 
 ---
 
@@ -129,4 +120,4 @@ php artisan test
 - O ambiente de testes utiliza o banco de dados SQLite em memória para otimizar a execução.
 - Sempre garanta que as migrations estão atualizadas tanto para o ambiente de desenvolvimento quanto para o ambiente de testes antes de executar os testes.
 
-Com este guia, você pode configurar e rodar sua aplicação Laravel 10, criar testes unitários e de integração, e rodar seeders de forma eficiente.
+Com este guia, você pode clonar e rodar o projeto Laravel 10, configurar o banco de dados, rodar seeders, e executar testes de forma eficiente.
