@@ -13,9 +13,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Os atributos podem ser adicionados em massa.
      */
     protected $fillable = [
         'name',
@@ -24,12 +22,12 @@ class User extends Authenticatable
         'phone_whatsapp',
         'birth_date',
         'is_client',
+        'cpf_cnpj',
+        'person_type',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Os atributos ocultos para arrays.
      */
     protected $hidden = [
         'password',
@@ -37,12 +35,10 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Os atributos que devem ser convertidos para tipos nativos.
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'birth_date' => 'date',
+        'is_client' => 'boolean',
     ];
 }
