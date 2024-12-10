@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BankController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -28,6 +29,8 @@ use Illuminate\Support\Facades\Route;
 
 // CRUD de usuários
 Route::apiResource('users', UserController::class);
+
+Route::apiResource('clients', ClientController::class);
 
 // CRUD de bancos
 Route::apiResource('banks', BankController::class);

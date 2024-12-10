@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     use HasFactory;
+
+    /**
+     * Os atributos podem ser adicionados em massa.
+     */
     protected $fillable = ['account_id', 'type', 'amount', 'description'];
 
     /**
