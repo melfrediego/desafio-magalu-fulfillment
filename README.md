@@ -114,6 +114,68 @@ Para rodar todos os testes criados no projeto, use o comando:
 php artisan test
 ```
 
+```bash
+php artisan test --testsuite=Unit
+```
+
+```bash
+php artisan test --testsuite=Feature
+```
+
+---
+
+#### **Executando os Testes Especificos**
+Testes Unitários de Account:
+
+```bash
+php artisan test --filter AccountUnitTest
+```
+
+Testes de Integração de Account:
+
+```bash
+php artisan test --filter AccountIntegrationTest
+```
+
+Testes Unitários de Client:
+
+```bash
+php artisan test --filter ClientUnitTest
+```
+
+Testes de Integração de Client:
+
+```bash
+php artisan test --filter ClientIntegrationTest
+```
+
+Testes Unitários de User
+```bash
+php artisan test --filter UserUnitTest
+```
+
+Testes de Integração de User
+```bash
+php artisan test --filter UserIntegrationTest
+```
+
+Testes de Transações
+```bash
+php artisan test --filter TransactionTest
+```
+
+Testes de Transações (TransactionServiceTest)
+```bash
+php artisan test --filter test_deposit_updates_balance_correctly
+```
+---
+
+## **Tecnologias Utilizadas**
+ - Laravel 10: Framework PHP.
+ - MySQL 8: Banco de dados relacional.
+ - PostgreSQL 15: Banco de dados relacional.
+ - Postman: Testes de API.
+
 ---
 
 ## **Observações**
