@@ -13,8 +13,8 @@ Este projeto refere-se a um **Desafio Técnico para Magalu Fulfillment**, desenv
 Clone o repositório do projeto em sua máquina local:
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
-cd nome-do-projeto
+git clone https://github.com/melfrediego/desafio-magalu-fulfillment
+cd desafio-magalu-fulfillment
 ```
 
 ### **2. Instalar Dependências**
@@ -100,8 +100,13 @@ Inicie o servidor do Laravel na porta padrão (8000):
 ```bash
 php artisan serve
 ```
+ou
 
-Acesse o projeto em seu navegador através de:  
+```bash
+php artisan serve --port xxxx
+```
+
+Acesse o projeto em seu navegador através de ou informe a porta correta ex: :8002, :8003.  
 [http://localhost:8000](http://localhost:8000)
 
 
