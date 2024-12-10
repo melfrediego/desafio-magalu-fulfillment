@@ -104,6 +104,10 @@ php artisan serve
 Acesse o projeto em seu navegador através de:  
 [http://localhost:8000](http://localhost:8000)
 
+
+Acesse a documentação em seu navegador através de:  
+[http://localhost:8000/api/documentation/](http://localhost:8000/api/documentation/)
+
 ---
 
 ## **Executando os Testes**

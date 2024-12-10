@@ -20,7 +20,7 @@ class UserController extends Controller
     public function index() : JsonResponse
     {
         try {
-            $users = User::orderBy('id', 'DESC')->paginate(2);
+            $users = User::orderBy('id', 'DESC')->paginate(10);
             return response()->json([
                 'status' => true,
                 'users' => $users
