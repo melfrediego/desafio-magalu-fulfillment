@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AccountRequest;
 use App\Models\Account;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +42,16 @@ class AccountController extends Controller
         DB::beginTransaction();
 
         try {
+
+            // Verifica se o usuário existe e é cliente
+            $user = User::findOrFail($request->user_id);
+            if (!$user->is_client) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'A conta só pode ser cadastrada para um usuário que seja cliente.',
+                ], 403);
+            }
+
             $account = Account::create([
                 'agency' => $request->agency,
                 'number' => $request->number,
@@ -62,7 +73,7 @@ class AccountController extends Controller
 
             return response()->json([
                 'status' => false,
-                'message' => 'Erro ao criar conta.'
+                'message' => 'Erro ao criar conta.' . $e->getMessage()
             ], 400);
         }
     }
@@ -101,6 +112,15 @@ class AccountController extends Controller
         DB::beginTransaction();
 
         try {
+            // Verifica se o usuário associado à conta é cliente
+            $user = User::findOrFail($request->user_id);
+            if (!$user->is_client) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'A conta só pode ser associada a um usuário que seja cliente.',
+                ], 403); // Código HTTP 403 - Proibido
+            }
+
             $account->update($request->only([
                 'agency', 'number', 'balance', 'credit_limit', 'user_id', 'bank_id'
             ]));

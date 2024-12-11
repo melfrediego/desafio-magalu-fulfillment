@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,13 +80,14 @@ class UserController extends Controller
         try {
             return response()->json([
                 'status' => true,
-                'user' => $user
+                'user' => $user,
             ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Usuário não encontrado.'
-            ], 404);
+                'message' => 'Erro ao buscar usuário.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
