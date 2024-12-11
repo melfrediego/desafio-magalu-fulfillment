@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             BankSeeder::class,
+            UserSeeder::class,
+            AccountSeeder::class
         ]);
     }
 }

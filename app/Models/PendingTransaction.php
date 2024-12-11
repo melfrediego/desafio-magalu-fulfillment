@@ -14,6 +14,7 @@ class PendingTransaction extends Model
      */
     protected $fillable = [
         'account_id',
+        'transaction_id',
         'type',
         'amount',
         'description',

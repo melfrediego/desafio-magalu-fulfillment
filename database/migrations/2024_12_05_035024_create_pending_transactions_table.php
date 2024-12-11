@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('pending_transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('account_id')->constrained()->onDelete('cascade');
-            $table->string('transaction_id')->unique();
-            $table->enum('type', ['deposit', 'withdrawal', 'transfer']);
+            $table->string('transaction_id')->nullable(false)->unique();
+            $table->enum('type', ['deposit', 'withdraw', 'transfer']);
             $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
             $table->boolean('processed')->default(false);

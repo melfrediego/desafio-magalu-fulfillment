@@ -73,6 +73,29 @@ php artisan db:seed
 
 ---
 
+#### Configurar filas processamento
+Modifique ou adicione no arquivo `.env`:
+
+```dotenv
+QUEUE_CONNECTION=database
+```
+
+Em seguida execute os comando:
+
+```bash
+php artisan queue:table
+php artisan migrate
+```
+
+Para processar os jobs na fila, inicie o worker de filas:
+
+```bash
+php artisan queue:work
+```
+
+
+---
+
 ## **Configuração do Ambiente de Testes**
 
 ### **1. Criar o Arquivo `.env.testing`**

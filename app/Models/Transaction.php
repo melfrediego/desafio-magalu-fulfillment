@@ -12,7 +12,7 @@ class Transaction extends Model
     /**
      * Os atributos podem ser adicionados em massa.
      */
-    protected $fillable = ['account_id', 'type', 'amount', 'description'];
+    protected $fillable = ['account_id', 'type', 'amount', 'description', 'status'];
 
     /**
      * Relacionamento: Uma transação pertence a uma conta.

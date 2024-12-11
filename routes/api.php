@@ -47,4 +47,4 @@ Route::post('/transactions/transfer', [TransactionController::class, 'transfer']
 Route::post('/transactions/transfer-async', [TransactionController::class, 'transferAsync']);
 Route::post('/transactions/batch', [TransactionController::class, 'processBatchTransactions']);
 Route::post('/transactions/reprocess', [TransactionController::class, 'reprocessPendingTransactions']);
-Route::get('/transactions/{id}/status', [TransactionController::class, 'getTransactionStatus']);
+Route::get('/transactions/{id}/status', [TransactionController::class, 'getTransactionStatus'])->name('transactions.status');;
