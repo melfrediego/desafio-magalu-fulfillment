@@ -52,7 +52,7 @@ class AccountRequest extends FormRequest
         $accountId = $this->account ? $this->account->id : 'NULL'; // Obtém o ID da conta no caso de atualização
 
         return [
-            'agency' => 'required|string|max:10|unique:accounts,agency,' . $accountId,
+            'agency' => 'required|string|max:10',
             'number' => 'required|string|max:40|unique:accounts,number,' . $accountId,
             'balance' => $this->isMethod('POST') // Saldo obrigatório apenas na criação
                 ? 'required|numeric|min:0'
@@ -77,7 +77,6 @@ class AccountRequest extends FormRequest
             'agency.required' => 'O campo agência é obrigatório.',
             'agency.string' => 'O campo agência deve ser um texto.',
             'agency.max' => 'O campo agência não pode ter mais que 10 caracteres.',
-            'agency.unique' => 'A agência já está registrada.',
             'number.required' => 'O campo número é obrigatório.',
             'number.string' => 'O campo número deve ser um texto.',
             'number.max' => 'O campo número não pode ter mais que 40 caracteres.',

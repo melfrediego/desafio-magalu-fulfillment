@@ -54,7 +54,8 @@ class BankRequest extends FormRequest
         return [
             'code' => [
                 'required',
-                'digits:6', // O campo deve ter exatamente 6 dígitos numéricos
+                'min:3',
+                'max:6',
                 'unique:banks,code,' . $bankId,
             ],
             'name' => 'required|string|max:255|unique:banks,name,' . $bankId,
@@ -73,7 +74,8 @@ class BankRequest extends FormRequest
     {
         return [
             'code.required' => 'O campo código é obrigatório.',
-            'code.digits' => 'O código deve ter exatamente :digits caracteres numéricos.',
+            'code.min' => 'O código deve de possuir no minino :min caracteres.',
+            'code.max' => 'O código deve de possuir no máximo :max caracteres.',
             'code.unique' => 'O código já está registrado.',
             'name.required' => 'O campo nome é obrigatório.',
             'name.string' => 'O nome do banco deve ser um texto.',
