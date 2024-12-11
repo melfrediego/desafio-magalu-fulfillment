@@ -109,6 +109,14 @@ class ClientController extends Controller
      */
     public function update(ClientRequest $request, User $client): JsonResponse
     {
+
+        if (!$client->is_client) {
+            return response()->json([
+                'status' => false,
+                'message' => 'O Usuário não é um cliente.',
+            ], 403); // Código HTTP 403 - Proibido
+        }
+
         DB::beginTransaction();
         try {
             $client->update($request->only([
