@@ -12,6 +12,538 @@
         }
     ],
     "paths": {
+        "/accounts/{account}": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Get account details",
+                "description": "Retrieve details of a specific account by ID.",
+                "operationId": "06fb0eb2826e0fb1010aaabedc3ec12f",
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "description": "ID of the account to retrieve",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account details retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "account": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "agency": {
+                                                    "type": "string",
+                                                    "example": "1234"
+                                                },
+                                                "number": {
+                                                    "type": "string",
+                                                    "example": "567890"
+                                                },
+                                                "balance": {
+                                                    "type": "number",
+                                                    "example": 1000.5
+                                                },
+                                                "credit_limit": {
+                                                    "type": "number",
+                                                    "example": 500
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conta não encontrada."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Update account details",
+                "description": "Update details of a specific account by ID.",
+                "operationId": "69e48e64dae48f1b647123aaddef63db",
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "description": "ID of the account to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "agency": {
+                                        "type": "string",
+                                        "example": "1234"
+                                    },
+                                    "number": {
+                                        "type": "string",
+                                        "example": "567890"
+                                    },
+                                    "balance": {
+                                        "type": "number",
+                                        "example": 1200
+                                    },
+                                    "credit_limit": {
+                                        "type": "number",
+                                        "example": 600
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "bank_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Account updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "account": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "agency": {
+                                                    "type": "string",
+                                                    "example": "1234"
+                                                },
+                                                "number": {
+                                                    "type": "string",
+                                                    "example": "567890"
+                                                },
+                                                "balance": {
+                                                    "type": "number",
+                                                    "example": 1200
+                                                },
+                                                "credit_limit": {
+                                                    "type": "number",
+                                                    "example": 600
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conta atualizada com sucesso!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Error when user is not a client.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "A conta só pode ser associada a um usuário que seja cliente."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error updating account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erro ao atualizar conta."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Delete an account",
+                "description": "Delete a specific account by ID.",
+                "operationId": "8446b185b89e93570c9831d721391fea",
+                "parameters": [
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "description": "ID of the account to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account deleted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conta excluída com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erro ao excluir conta."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts": {
+            "get": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "List all accounts",
+                "description": "Retrieve a paginated list of all accounts with their associated users and banks.",
+                "operationId": "935f4fd363b827999ac9f872bdf476ae",
+                "responses": {
+                    "200": {
+                        "description": "List of accounts retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "accounts": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "agency": {
+                                                                "type": "string",
+                                                                "example": "1234"
+                                                            },
+                                                            "number": {
+                                                                "type": "string",
+                                                                "example": "567890"
+                                                            },
+                                                            "balance": {
+                                                                "type": "number",
+                                                                "example": 1000.5
+                                                            },
+                                                            "credit_limit": {
+                                                                "type": "number",
+                                                                "example": 500
+                                                            },
+                                                            "user": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 1
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "John Doe"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "bank": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 1
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Bank Name"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Error retrieving accounts.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erro ao listar contas."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Accounts"
+                ],
+                "summary": "Create a new account",
+                "description": "Create a new account for a client user.",
+                "operationId": "77f84d29fc07a119b82d113f1a2a2556",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "agency": {
+                                        "type": "string",
+                                        "example": "1234"
+                                    },
+                                    "number": {
+                                        "type": "string",
+                                        "example": "567890"
+                                    },
+                                    "balance": {
+                                        "type": "number",
+                                        "example": 1000.5
+                                    },
+                                    "credit_limit": {
+                                        "type": "number",
+                                        "example": 500
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "bank_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Account created successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "account": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "agency": {
+                                                    "type": "string",
+                                                    "example": "1234"
+                                                },
+                                                "number": {
+                                                    "type": "string",
+                                                    "example": "567890"
+                                                },
+                                                "balance": {
+                                                    "type": "number",
+                                                    "example": 1000.5
+                                                },
+                                                "credit_limit": {
+                                                    "type": "number",
+                                                    "example": 500
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conta cadastrada com sucesso!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Error when user is not a client.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "A conta só pode ser cadastrada para um usuário que seja cliente."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error creating account.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Erro ao criar conta."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/banks/{bank}": {
             "get": {
                 "tags": [
@@ -1975,6 +2507,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Accounts",
+            "description": "Accounts"
+        },
         {
             "name": "Banks",
             "description": "Banks"

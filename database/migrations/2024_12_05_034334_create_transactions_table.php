@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('account_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['deposit', 'withdrawal', 'transfer']);
+            $table->enum('type', ['deposit', 'withdraw', 'transfer']);
             $table->decimal('amount', 15, 2);
             $table->text('description')->nullable();
+            $table->enum('status', ['pending', 'success', 'failed'])->default('pending');
             $table->timestamps();
         });
     }

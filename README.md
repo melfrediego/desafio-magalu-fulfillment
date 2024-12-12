@@ -57,12 +57,6 @@ php artisan migrate
 ```
 
 ### **5. Executar Seeders**
-#### Rodar Seeder Específico
-Para rodar a seeder de `Bank`, execute:
-
-```bash
-php artisan db:seed --class=BankSeeder
-```
 
 #### Rodar Todos os Seeders
 Caso deseje executar todas as seeders de uma vez:
@@ -70,6 +64,29 @@ Caso deseje executar todas as seeders de uma vez:
 ```bash
 php artisan db:seed
 ```
+
+---
+
+#### Configurar filas processamento
+Modifique ou adicione no arquivo `.env`:
+
+```dotenv
+QUEUE_CONNECTION=database
+```
+
+Em seguida execute os comando:
+
+```bash
+php artisan queue:table
+php artisan migrate
+```
+
+Para processar os jobs na fila, inicie o worker de filas:
+
+```bash
+php artisan queue:work
+```
+
 
 ---
 
