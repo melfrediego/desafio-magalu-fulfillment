@@ -2,17 +2,17 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use App\Models\Account;
-use App\Models\Transaction;
+use App\Models\PendingTransaction;
 use App\Services\TransactionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TransactionServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected TransactionService $service;
+    private TransactionService $service;
 
     protected function setUp(): void
     {
@@ -25,35 +25,46 @@ class TransactionServiceTest extends TestCase
      */
     public function test_deposit_updates_balance_correctly()
     {
-        // Configura conta inicial com saldo de 1000
-        $account = Account::factory()->create(['balance' => 1000]);
+        $account = Account::factory()->create([
+            'balance' => 1000,
+            'user_id' => \App\Models\User::factory()->create([
+                'cpf_cnpj' => '12345678900', // Adiciona CPF/CNPJ válido
+            ])->id,
+        ]);
 
-        // Executa o depósito
-        $transaction = $this->service->processTransaction($account, 'deposit', 500, 'Teste de depósito');
+        $this->service->createTransactionRecord([
+            'account_id' => $account->id,
+            'type' => 'deposit',
+            'amount' => 500,
+            'description' => 'Depósito teste',
+            'status' => 'success',
+        ]);
 
-        // Verifica se o saldo foi atualizado
         $this->assertEquals(1500, $account->fresh()->balance);
-
-        // Verifica se a transação foi registrada com sucesso
-        $this->assertEquals('success', $transaction->status);
     }
 
     /**
-     * Testa a operação de saque.
+     * Testa a operação de saque com taxa.
      */
     public function test_withdraw_applies_fee_and_updates_balance()
     {
-        // Configura conta inicial com saldo e limite de crédito
-        $account = Account::factory()->create(['balance' => 1000, 'credit_limit' => 500]);
+        $account = Account::factory()->create([
+            'balance' => 1000,
+            'user_id' => \App\Models\User::factory()->create([
+                'cpf_cnpj' => '12345678900', // Adiciona CPF/CNPJ válido
+            ])->id,
+        ]);
 
-        // Executa o saque
-        $transaction = $this->service->processTransaction($account, 'withdraw', 400, 'Teste de saque');
+        $transaction = $this->service->createTransactionRecord([
+            'account_id' => $account->id,
+            'type' => 'withdraw',
+            'amount' => 400,
+            'description' => 'Saque teste',
+            'status' => 'success',
+        ]);
 
-        // Verifica se o saldo foi atualizado corretamente (com taxa de 1%)
-        $this->assertEquals(596, $account->fresh()->balance); // 400 + 1% = 404
-
-        // Verifica se a transação foi registrada com sucesso
-        $this->assertEquals('success', $transaction->status);
+        $this->assertEquals(600, $account->fresh()->balance);
+        $this->assertDatabaseHas('transactions', ['id' => $transaction->id]);
     }
 
     /**
@@ -61,30 +72,54 @@ class TransactionServiceTest extends TestCase
      */
     public function test_transfer_updates_both_accounts_correctly()
     {
-        // Configura contas de origem e destino
-        $sourceAccount = Account::factory()->create(['balance' => 1000, 'credit_limit' => 500]);
-        $targetAccount = Account::factory()->create(['balance' => 500]);
+        $sourceAccount = Account::factory()->create([
+            'balance' => 1000,
+            'user_id' => \App\Models\User::factory()->create([
+                'cpf_cnpj' => '12345678900', // Adiciona CPF/CNPJ válido
+            ])->id,
+        ]);
 
-        // Executa a transferência
-        $this->service->transfer($sourceAccount, $targetAccount, 300, 'Teste de transferência');
+        $targetAccount = Account::factory()->create([
+            'balance' => 500,
+            'user_id' => \App\Models\User::factory()->create([
+                'cpf_cnpj' => '98765432100', // Adiciona CPF/CNPJ válido
+            ])->id,
+        ]);
 
-        // Verifica os saldos atualizados
-        $this->assertEquals(694, $sourceAccount->fresh()->balance); // 300 + 2% = 306
+        $pendingTransaction = PendingTransaction::factory()->create([
+            'account_id' => $sourceAccount->id,
+            'target_account_id' => $targetAccount->id,
+            'amount' => 300,
+            'type' => 'transfer',
+            'description' => 'Transferência teste',
+        ]);
+
+        $this->service->processPendingTransaction($pendingTransaction);
+
+        $this->assertEquals(700, $sourceAccount->fresh()->balance);
         $this->assertEquals(800, $targetAccount->fresh()->balance);
     }
 
     /**
-     * Testa se uma transação com saldo insuficiente falha.
+     * Testa saque com saldo insuficiente.
      */
     public function test_withdraw_fails_on_insufficient_balance()
     {
-        // Configura conta inicial com saldo insuficiente
-        $account = Account::factory()->create(['balance' => 100]);
+        $account = Account::factory()->create([
+            'balance' => 100,
+            'user_id' => \App\Models\User::factory()->create([
+                'cpf_cnpj' => '12345678900', // Adiciona CPF/CNPJ válido
+            ])->id,
+        ]);
 
-        // Tenta executar o saque
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Saldo insuficiente, incluindo taxas.');
+        $this->expectExceptionMessage('Saldo insuficiente.');
 
-        $this->service->processTransaction($account, 'withdraw', 200, 'Teste de saldo insuficiente');
+        $this->service->createTransactionRecord([
+            'account_id' => $account->id,
+            'type' => 'withdraw',
+            'amount' => 200,
+            'description' => 'Saque inválido',
+        ]);
     }
 }

@@ -101,12 +101,19 @@ DB_CONNECTION=sqlite
 DB_DATABASE=:memory:
 ```
 
+```bash
+cp .env .env.testing
+php artisan key:generate --env=testing
+```
+
 ### **2. Executar Migrations no Ambiente de Testes**
 Certifique-se de que as tabelas estão configuradas para o ambiente de testes:
 
 ```bash
 php artisan migrate --env=testing
 ```
+
+
 
 ---
 
@@ -202,6 +209,11 @@ php artisan test --filter test_deposit_updates_balance_correctly
  - PostgreSQL 15: Banco de dados relacional.
  - Postman: Testes de API.
 
+---
+
+## **Melhorias Propostas**
+ - Docker(Container).
+ - Ajustes Test Unitarios
 ---
 
 ## **Observações**
