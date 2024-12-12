@@ -217,6 +217,7 @@ php artisan test --filter test_deposit_updates_balance_correctly
 ---
 
 ## **Observações**
+- Sobre o ultimo item, existe um link para reprocesssar transações, no projeto consta o arquivo dos endpoints para POSTMAN.
 - O ambiente de testes utiliza o banco de dados SQLite em memória para otimizar a execução.
 - Sempre garanta que as migrations estão atualizadas tanto para o ambiente de desenvolvimento quanto para o ambiente de testes antes de executar os testes.
 
