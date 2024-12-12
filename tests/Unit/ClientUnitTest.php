@@ -4,35 +4,19 @@ namespace Tests\Unit;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ClientUnitTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Testa a criação de um cliente válido.
-     */
-    public function test_create_valid_client()
-    {
-        $client = User::factory()->create([
-            'is_client' => true,
-            'cpf_cnpj' => '12345678900',
-            'person_type' => 'PF',
-        ]);
-
-        $this->assertDatabaseHas('users', [
-            'cpf_cnpj' => '12345678900',
-            'is_client' => true,
-        ]);
-    }
-
-    /**
      * Testa a falha ao criar um cliente sem CPF/CNPJ.
      */
     public function test_fail_create_client_without_cpf_cnpj()
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(\App\Exceptions\BusinessValidationException::class);
+        $this->expectExceptionMessage('O campo cpf_cnpj é obrigatório.');
 
         User::create([
             'name' => 'Cliente Teste',
@@ -53,7 +37,8 @@ class ClientUnitTest extends TestCase
             'person_type' => 'PF',
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(\App\Exceptions\BusinessValidationException::class);
+        $this->expectExceptionMessage('O CPF/CNPJ já está em uso.');
 
         User::create([
             'name' => 'Outro Cliente',

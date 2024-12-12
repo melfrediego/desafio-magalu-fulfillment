@@ -4,9 +4,13 @@ namespace App\Jobs;
 
 use App\Models\Transaction;
 use App\Jobs\ProcessTransactionJob;
+use App\Models\PendingTransaction;
+use App\Services\TransactionService;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 class ReprocessPendingTransactionsJob implements ShouldQueue
 {
@@ -15,12 +19,22 @@ class ReprocessPendingTransactionsJob implements ShouldQueue
     /**
      * Reprocessa todas as transações pendentes.
      */
-    public function handle()
+    public function handle(TransactionService $service)
     {
-        $pendingTransactions = Transaction::where('status', 'pending')->get();
+        $pendingTransactions = PendingTransaction::where('processed', false)->get();
 
         foreach ($pendingTransactions as $pendingTransaction) {
-            ProcessTransactionJob::dispatch($pendingTransaction->id);
+            try {
+                $service->processPendingTransaction($pendingTransaction);
+                $pendingTransaction->update(['processed' => true]);
+                Log::info("Transação pendente reprocessada com sucesso.", [
+                    'transaction_id' => $pendingTransaction->transaction_id,
+                ]);
+            } catch (Exception $e) {
+                Log::error("Erro ao reprocessar transação pendente: {$e->getMessage()}", [
+                    'transaction_id' => $pendingTransaction->transaction_id,
+                ]);
+            }
         }
     }
 }

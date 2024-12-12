@@ -101,12 +101,19 @@ DB_CONNECTION=sqlite
 DB_DATABASE=:memory:
 ```
 
+```bash
+cp .env .env.testing
+php artisan key:generate --env=testing
+```
+
 ### **2. Executar Migrations no Ambiente de Testes**
 Certifique-se de que as tabelas estão configuradas para o ambiente de testes:
 
 ```bash
 php artisan migrate --env=testing
 ```
+
+
 
 ---
 

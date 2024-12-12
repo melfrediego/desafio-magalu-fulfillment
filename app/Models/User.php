@@ -7,10 +7,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Exceptions\BusinessValidationException;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (!$user->email) {
+                throw new \App\Exceptions\BusinessValidationException('O campo email é obrigatório.');
+            }
+        });
+    }
 
     /**
      * Os atributos podem ser adicionados em massa.
@@ -41,4 +53,6 @@ class User extends Authenticatable
         'birth_date' => 'date',
         'is_client' => 'boolean',
     ];
+
+
 }
