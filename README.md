@@ -57,12 +57,6 @@ php artisan migrate
 ```
 
 ### **5. Executar Seeders**
-#### Rodar Seeder Específico
-Para rodar a seeder de `Bank`, execute:
-
-```bash
-php artisan db:seed --class=BankSeeder
-```
 
 #### Rodar Todos os Seeders
 Caso deseje executar todas as seeders de uma vez:
