@@ -23,7 +23,7 @@ class UserFactory extends Factory
             'password' => Hash::make('password'), // Criptografa a senha
             'remember_token' => Str::random(10),
             'is_client' => false, // Padrão para não cliente
-            'cpf_cnpj' => null, // Deixado nulo para não cliente
+            'cpf_cnpj' => $this->faker->numerify('###########'), // Deixado nulo para não cliente
             'person_type' => null, // Deixado nulo para não cliente
         ];
     }
