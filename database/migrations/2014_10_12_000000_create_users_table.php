@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone_whatsapp')->nullable(); // Telefone com WhatsApp
             $table->date('birth_date')->nullable(); // Data de nascimento
             $table->boolean('is_client')->default(false); // Flag para identificar cliente
-            $table->string('cpf_cnpj')->nullable(); // CPF ou CNPJ
+            $table->string('cpf_cnpj')->nullable()->unique(); // CPF ou CNPJ
             $table->enum('person_type', ['PF', 'PJ'])->nullable(); // Tipo de pessoa: Física (PF) ou Jurídica (PJ)
             $table->rememberToken();
             $table->timestamps();

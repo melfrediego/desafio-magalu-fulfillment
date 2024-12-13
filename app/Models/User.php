@@ -21,6 +21,14 @@ class User extends Authenticatable
             if (!$user->email) {
                 throw new \App\Exceptions\BusinessValidationException('O campo email é obrigatório.');
             }
+
+            if ($user->is_client && !$user->cpf_cnpj) {
+                throw new \App\Exceptions\BusinessValidationException('O campo cpf_cnpj é obrigatório.');
+            }
+
+            if ($user->is_client && User::where('cpf_cnpj', $user->cpf_cnpj)->exists()) {
+                throw new \App\Exceptions\BusinessValidationException('O CPF/CNPJ já está em uso.');
+            }
         });
     }
 
