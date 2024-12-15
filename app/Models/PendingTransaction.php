@@ -14,6 +14,7 @@ class PendingTransaction extends Model
      */
     protected $fillable = [
         'account_id',
+        'target_account_id',
         'transaction_id',
         'type',
         'amount',
@@ -27,5 +28,15 @@ class PendingTransaction extends Model
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    /**
+     * Retorna o status da transação com base no campo 'processed'.
+     *
+     * @return string
+     */
+    public function getStatusAttribute(): string
+    {
+        return $this->processed ? 'processed' : 'pending';
     }
 }

@@ -26,7 +26,7 @@ class TransactionServiceTest extends TestCase
      */
     public function test_transfer_updates_both_accounts_correctly(): void
     {
-        $sourceAccount = Account::factory()->create(['balance' => 1100]);
+        $sourceAccount = Account::factory()->create(['balance' => 1000]);
         $targetAccount = Account::factory()->create(['balance' => 500]);
 
         $pendingTransaction = PendingTransaction::factory()->create([

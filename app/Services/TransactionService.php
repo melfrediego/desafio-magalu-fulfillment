@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class TransactionService
 {
+
     /**
      * Cria um registro de transação.
      *
@@ -21,13 +22,13 @@ class TransactionService
     {
         $transaction = Transaction::create($data);
 
-        $account = Account::lockForUpdate()->findOrFail($data['account_id']);
-        if ($data['type'] === 'deposit') {
-            $account->balance += $data['amount'];
-        } elseif ($data['type'] === 'withdraw') {
-            $account->balance -= $data['amount'];
-        }
-        $account->save();
+        // $account = Account::lockForUpdate()->findOrFail($data['account_id']);
+        // if ($data['type'] === 'deposit') {
+        //     $account->balance += $data['amount'];
+        // } elseif ($data['type'] === 'withdraw') {
+        //     $account->balance -= $data['amount'];
+        // }
+        // $account->save();
 
         return $transaction;
     }
@@ -42,69 +43,137 @@ class TransactionService
     public function processPendingTransaction(PendingTransaction $pendingTransaction): Transaction
     {
         return DB::transaction(function () use ($pendingTransaction) {
-            $account = Account::lockForUpdate()->findOrFail($pendingTransaction->account_id);
+            $sourceAccount = Account::lockForUpdate()->findOrFail($pendingTransaction->account_id);
 
-            $type = $pendingTransaction->type;
-            $amount = $pendingTransaction->amount;
-            $description = $pendingTransaction->description;
+            if ($pendingTransaction->type === 'transfer') {
+                // Para transferências, também busca a conta de destino
+                $targetAccount = Account::lockForUpdate()->findOrFail($pendingTransaction->target_account_id);
 
-            if ($type === 'deposit') {
-                $account->balance += $amount;
-            } elseif ($type === 'withdraw') {
-                $this->validateBalance($account, $amount);
-                $account->balance -= $amount;
-            } elseif ($type === 'transfer') {
-                $this->processTransfer($pendingTransaction, $account);
+                // Valida saldo suficiente na conta de origem
+                $this->validateBalance($sourceAccount, $pendingTransaction->amount);
+
+                // Atualiza saldos
+                $sourceAccount->balance -= $pendingTransaction->amount;
+                $targetAccount->balance += $pendingTransaction->amount;
+
+                $sourceAccount->save();
+                $targetAccount->save();
+
+                // Cria registros de transação para ambas as contas
+                $this->createTransactionRecord([
+                    'account_id' => $sourceAccount->id,
+                    'type' => 'withdraw',
+                    'amount' => $pendingTransaction->amount,
+                    'description' => $pendingTransaction->description ?: 'Transferência enviada',
+                    'status' => 'success',
+                ]);
+
+                $this->createTransactionRecord([
+                    'account_id' => $targetAccount->id,
+                    'type' => 'deposit',
+                    'amount' => $pendingTransaction->amount,
+                    'description' => $pendingTransaction->description ?: 'Transferência recebida',
+                    'status' => 'success',
+                ]);
+            } elseif ($pendingTransaction->type === 'deposit') {
+                $sourceAccount->balance += $pendingTransaction->amount;
+                $sourceAccount->save();
+            } elseif ($pendingTransaction->type === 'withdraw') {
+                $this->validateBalance($sourceAccount, $pendingTransaction->amount);
+                $sourceAccount->balance -= $pendingTransaction->amount;
+                $sourceAccount->save();
             } else {
-                throw new Exception("Tipo de transação inválido: {$type}");
+                throw new Exception("Tipo de transação inválido: {$pendingTransaction->type}");
             }
 
-            $account->save();
-
-            $transaction = $this->createTransactionRecord([
-                'account_id' => $account->id,
-                'type' => $type,
-                'amount' => $amount,
-                'description' => $description,
-                'status' => 'success',
-            ]);
-
+            // Marca a transação pendente como processada
             $pendingTransaction->update(['processed' => true]);
 
-            Log::info("Transação {$type} processada com sucesso.", [
-                'transaction_id' => $transaction->id,
-                'account_id' => $account->id,
-                'amount' => $amount,
+            return $this->createTransactionRecord([
+                'account_id' => $sourceAccount->id,
+                'type' => $pendingTransaction->type,
+                'amount' => $pendingTransaction->amount,
+                'description' => $pendingTransaction->description,
+                'status' => 'success',
             ]);
-
-            return $transaction;
         });
     }
 
-    /**
-     * Processa transferências entre contas.
-     *
-     * @param PendingTransaction $pendingTransaction
-     * @param Account $sourceAccount
-     * @throws \Exception
-     */
+
+    // /**
+    //  * Processa transferências entre contas.
+    //  *
+    //  * @param PendingTransaction $pendingTransaction
+    //  * @param Account $sourceAccount
+    //  * @throws \Exception
+    //  */
+    // protected function processTransfer(PendingTransaction $pendingTransaction, Account $sourceAccount)
+    // {
+    //     // Valida saldo suficiente na conta de origem
+    //     $this->validateBalance($sourceAccount, $pendingTransaction->amount);
+
+    //     // Obtém a conta de destino
+    //     $targetAccount = Account::lockForUpdate()->findOrFail($pendingTransaction->target_account_id);
+
+    //     // Realiza a transferência de saldo
+    //     $sourceAccount->balance -= $pendingTransaction->amount;
+    //     $targetAccount->balance += $pendingTransaction->amount;
+
+    //     // Salva os novos saldos
+    //     $sourceAccount->save();
+    //     $targetAccount->save();
+
+    //     // Registra transações para ambas as contas
+    //     $this->createTransactionRecord([
+    //         'account_id' => $sourceAccount->id,
+    //         'type' => 'withdraw',
+    //         'amount' => $pendingTransaction->amount,
+    //         'description' => 'Transferência enviada',
+    //         'status' => 'success',
+    //     ]);
+
+    //     $this->createTransactionRecord([
+    //         'account_id' => $targetAccount->id,
+    //         'type' => 'deposit',
+    //         'amount' => $pendingTransaction->amount,
+    //         'description' => 'Transferência recebida',
+    //         'status' => 'success',
+    //     ]);
+
+    //     Log::info('Transfer');
+
+    //     // Atualiza o status da transação pendente
+    //     $pendingTransaction->update(['processed' => true]);
+
+    //     Log::info("Transferência processada com sucesso.", [
+    //         'source_account_id' => $sourceAccount->id,
+    //         'target_account_id' => $targetAccount->id,
+    //         'amount' => $pendingTransaction->amount,
+    //     ]);
+    // }
+
     protected function processTransfer(PendingTransaction $pendingTransaction, Account $sourceAccount)
     {
+        // Valida saldo suficiente na conta de origem
         $this->validateBalance($sourceAccount, $pendingTransaction->amount);
 
+        // Obtém a conta de destino
         $targetAccount = Account::lockForUpdate()->findOrFail($pendingTransaction->target_account_id);
 
+        // Realiza a transferência de saldo
         $sourceAccount->balance -= $pendingTransaction->amount;
         $targetAccount->balance += $pendingTransaction->amount;
 
+        // Salva os novos saldos
         $sourceAccount->save();
         $targetAccount->save();
 
+        // Registra transações para ambas as contas
         $this->createTransactionRecord([
             'account_id' => $sourceAccount->id,
-            'type' => 'transfer',
+            'type' => 'withdraw',
             'amount' => $pendingTransaction->amount,
-            'description' => 'Transferência enviada',
+            'description' => $pendingTransaction->description . ' - Transferência enviada',
             'status' => 'success',
         ]);
 
@@ -112,9 +181,12 @@ class TransactionService
             'account_id' => $targetAccount->id,
             'type' => 'deposit',
             'amount' => $pendingTransaction->amount,
-            'description' => 'Transferência recebida',
+            'description' => $pendingTransaction->description . ' - Transferência recebida',
             'status' => 'success',
         ]);
+
+        // Atualiza o status da transação pendente
+        $pendingTransaction->update(['processed' => true]);
 
         Log::info("Transferência processada com sucesso.", [
             'source_account_id' => $sourceAccount->id,

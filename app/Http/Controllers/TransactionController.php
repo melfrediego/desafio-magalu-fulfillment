@@ -180,34 +180,33 @@ class TransactionController extends Controller
             $sourceAccount = Account::findOrFail($request->source_account_id);
             $targetAccount = Account::findOrFail($request->target_account_id);
 
-            // Verifica se a conta de origem possui saldo suficiente
-            if ($sourceAccount->balance < $request->amount) {
-                throw new \Exception('Saldo insuficiente na conta de origem.');
-            }
-
-            // Debita o saldo da conta de origem
-            $sourceAccount->balance -= $request->amount;
-            $sourceAccount->save();
-
-            // Credita o saldo na conta de destino
-            $targetAccount->balance += $request->amount;
-            $targetAccount->save();
-
             // Registra a transação pendente
             $pendingTransaction = PendingTransaction::create([
                 'account_id' => $request->source_account_id,
+                'target_account_id' => $request->target_account_id,
                 'transaction_id' => uniqid('tx_'),
                 'type' => 'transfer',
                 'amount' => $request->amount,
                 'description' => $request->description,
-                'processed' => true, // Marca como processado já que não está usando fila
+                'processed' => false,
             ]);
+
+            // Processa a transferência
+            $this->service->processPendingTransaction($pendingTransaction);
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Transferência realizada com sucesso.',
-                'transaction' => $pendingTransaction,
+                'transaction' => [
+                    'account_id' => $pendingTransaction->account_id,
+                    'type' => $pendingTransaction->type,
+                    'amount' => $pendingTransaction->amount,
+                    'description' => $pendingTransaction->description,
+                    'status' => $pendingTransaction->status, // Inclui o campo status
+                    'created_at' => $pendingTransaction->created_at,
+                    'updated_at' => $pendingTransaction->updated_at,
+                ],
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -220,6 +219,7 @@ class TransactionController extends Controller
             ], 400);
         }
     }
+
 
     /**
      * Realiza uma transferência (com filas).
@@ -235,6 +235,7 @@ class TransactionController extends Controller
 
         $pendingTransaction = PendingTransaction::create([
             'account_id' => $request->source_account_id,
+            'target_account_id' => $request->target_account_id,
             'transaction_id' => uniqid('tx_'),
             'type' => 'transfer',
             'amount' => $request->amount,
