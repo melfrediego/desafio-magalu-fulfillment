@@ -7,69 +7,94 @@ use Tests\TestCase;
 use App\Models\Bank;
 use App\Models\User;
 
-class BankIntegrationTest extends TestCase
+class BankControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_create_bank_successfully()
+    /**
+     * Testa o endpoint para listar todos os bancos.
+     */
+    public function test_it_lists_all_banks()
     {
-        $data = [
-            'name' => 'Bank Test',
-            'code' => '1234',
+        Bank::factory()->count(5)->create();
+
+        $response = $this->actingAs(User::factory()->create())->getJson('/api/banks');
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure([
+                     'status',
+                     'banks' => [
+                         'data',
+                         'links',
+                         'meta',
+                     ],
+                 ]);
+    }
+
+    /**
+     * Testa a criação de um novo banco com sucesso.
+     */
+    public function test_it_creates_a_new_bank()
+    {
+        $bankData = [
+            'code' => '001',
+            'name' => 'Banco Teste',
         ];
 
-        $response = $this->actingAs(User::factory()->create())->postJson('/api/banks', $data);
+        $response = $this->actingAs(User::factory()->create())->postJson('/api/banks', $bankData);
 
         $response->assertStatus(201)
                  ->assertJson([
                      'status' => true,
-                     'message' => 'Banco criado com sucesso!'
+                     'message' => 'Banco cadastrado com sucesso!',
                  ]);
 
-        $this->assertDatabaseHas('banks', $data);
+        $this->assertDatabaseHas('banks', $bankData);
     }
 
-    public function test_create_bank_with_missing_data()
+    /**
+     * Testa a validação ao tentar criar um banco com dados inválidos.
+     */
+    public function test_it_fails_to_create_a_bank_with_invalid_data()
     {
-        $data = ['name' => '']; // Faltando o campo "code"
-
-        $response = $this->actingAs(User::factory()->create())->postJson('/api/banks', $data);
+        $response = $this->actingAs(User::factory()->create())->postJson('/api/banks', []);
 
         $response->assertStatus(422)
                  ->assertJsonStructure([
-                     'status',
-                     'errors' => ['name', 'code'],
+                     'message',
+                     'errors' => [
+                         'code',
+                         'name',
+                     ],
                  ]);
     }
 
-    public function test_update_bank_successfully()
+    /**
+     * Testa a exibição de um banco específico.
+     */
+    public function test_it_shows_a_specific_bank()
     {
         $bank = Bank::factory()->create();
 
-        $data = [
-            'name' => 'Updated Bank',
-            'code' => '5678',
-        ];
-
-        $response = $this->actingAs(User::factory()->create())->putJson("/api/banks/{$bank->id}", $data);
+        $response = $this->actingAs(User::factory()->create())->getJson("/api/banks/{$bank->id}");
 
         $response->assertStatus(200)
                  ->assertJson([
                      'status' => true,
-                     'message' => 'Banco atualizado com sucesso!'
+                     'bank' => [
+                         'id' => $bank->id,
+                         'code' => $bank->code,
+                         'name' => $bank->name,
+                     ],
                  ]);
-
-        $this->assertDatabaseHas('banks', $data);
     }
 
-    public function test_update_non_existent_bank()
+    /**
+     * Testa a exibição de um banco não existente.
+     */
+    public function test_it_returns_not_found_for_nonexistent_bank()
     {
-        $data = [
-            'name' => 'Non-existent Bank',
-            'code' => '9999',
-        ];
-
-        $response = $this->actingAs(User::factory()->create())->putJson('/api/banks/9999', $data);
+        $response = $this->actingAs(User::factory()->create())->getJson('/api/banks/9999');
 
         $response->assertStatus(404)
                  ->assertJson([
@@ -78,7 +103,52 @@ class BankIntegrationTest extends TestCase
                  ]);
     }
 
-    public function test_delete_bank_successfully()
+    /**
+     * Testa a atualização de um banco com sucesso.
+     */
+    public function test_it_updates_a_bank_successfully()
+    {
+        $bank = Bank::factory()->create();
+
+        $updatedData = [
+            'code' => '002',
+            'name' => 'Banco Atualizado',
+        ];
+
+        $response = $this->actingAs(User::factory()->create())->putJson("/api/banks/{$bank->id}", $updatedData);
+
+        $response->assertStatus(200)
+                 ->assertJson([
+                     'status' => true,
+                     'message' => 'Banco atualizado com sucesso!',
+                 ]);
+
+        $this->assertDatabaseHas('banks', $updatedData);
+    }
+
+    /**
+     * Testa a validação ao tentar atualizar um banco com dados inválidos.
+     */
+    public function test_it_fails_to_update_a_bank_with_invalid_data()
+    {
+        $bank = Bank::factory()->create();
+
+        $response = $this->actingAs(User::factory()->create())->putJson("/api/banks/{$bank->id}", []);
+
+        $response->assertStatus(422)
+                 ->assertJsonStructure([
+                     'message',
+                     'errors' => [
+                         'code',
+                         'name',
+                     ],
+                 ]);
+    }
+
+    /**
+     * Testa a exclusão de um banco com sucesso.
+     */
+    public function test_it_deletes_a_bank_successfully()
     {
         $bank = Bank::factory()->create();
 
@@ -87,13 +157,16 @@ class BankIntegrationTest extends TestCase
         $response->assertStatus(200)
                  ->assertJson([
                      'status' => true,
-                     'message' => 'Banco excluído com sucesso.'
+                     'message' => 'Banco excluído com sucesso.',
                  ]);
 
         $this->assertDatabaseMissing('banks', ['id' => $bank->id]);
     }
 
-    public function test_delete_non_existent_bank()
+    /**
+     * Testa a exclusão de um banco não existente.
+     */
+    public function test_it_returns_error_when_deleting_nonexistent_bank()
     {
         $response = $this->actingAs(User::factory()->create())->deleteJson('/api/banks/9999');
 
