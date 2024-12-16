@@ -24,5 +24,12 @@ class PendingTransactionFactory extends Factory
             'processed' => false, // Pendente por padrão
         ];
     }
+
+    public function withInvalidType()
+    {
+        return $this->state([
+            'type' => 'invalid_type',
+        ]);
+    }
 }
 

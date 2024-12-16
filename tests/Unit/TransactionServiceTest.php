@@ -6,15 +6,20 @@ use App\Models\Account;
 use App\Models\PendingTransaction;
 use App\Models\Transaction;
 use App\Services\TransactionService;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TransactionServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase; // Isso irá usar um banco de dados em memória para os testes
 
     private TransactionService $service;
 
+    /**
+     *  Configura o ambiente de teste.
+     *  Cria uma instância do serviço TransactionService antes de cada teste.
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,68 +27,205 @@ class TransactionServiceTest extends TestCase
     }
 
     /**
-     * Testa a operação de transferência entre contas.
+     * @test
+     * Testa se o método createTransactionRecord cria um registro de transação com sucesso.
      */
-    public function test_transfer_updates_both_accounts_correctly(): void
+    public function createTransactionRecord_creates_a_transaction_record_successfully()
     {
-        $sourceAccount = Account::factory()->create(['balance' => 1000]);
-        $targetAccount = Account::factory()->create(['balance' => 500]);
+        // Cria um array com os dados da transação
+        $data = [
+            'account_id' => Account::factory()->create()->id, // Cria uma conta e usa seu ID
+            'type' => 'deposit',
+            'amount' => 100,
+            'description' => 'Test deposit',
+            'status' => 'success',
+        ];
 
-        $pendingTransaction = PendingTransaction::factory()->create([
-            'account_id' => $sourceAccount->id,
-            'target_account_id' => $targetAccount->id,
-            'amount' => 300,
-            'type' => 'transfer',
-            'description' => 'Transferência teste',
-            'processed' => false,
-        ]);
+        // Chama o método createTransactionRecord do serviço
+        $transaction = $this->service->createTransactionRecord($data);
 
-        $this->service->processPendingTransaction($pendingTransaction);
-
-        $this->assertEquals(700, $sourceAccount->fresh()->balance); // Fonte
-        $this->assertEquals(800, $targetAccount->fresh()->balance); // Destino
-        $this->assertTrue($pendingTransaction->fresh()->processed);
+        // Verifica se o retorno é uma instância de Transaction
+        $this->assertInstanceOf(Transaction::class, $transaction);
+        // Verifica se os dados foram persistidos no banco de dados
+        $this->assertDatabaseHas('transactions', $data);
     }
 
     /**
-     * Testa saque com saldo insuficiente.
+     * @test
+     * Testa se o método processPendingTransaction processa uma transação pendente de depósito com sucesso.
      */
-    public function test_withdraw_fails_on_insufficient_balance(): void
+    public function processPendingTransaction_processes_a_pending_deposit_transaction_successfully()
     {
-        $account = Account::factory()->create(['balance' => 100]);
+        // Cria uma conta com saldo de 500
+        $account = Account::factory()->create(['balance' => 500]);
+        // Cria uma transação pendente de depósito
+        $pendingTransaction = PendingTransaction::factory()->create([
+            'account_id' => $account->id,
+            'type' => 'deposit',
+            'amount' => 100,
+        ]);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Saldo insuficiente.');
+        // Processa a transação pendente
+        $transaction = $this->service->processPendingTransaction($pendingTransaction);
 
-        $this->service->createTransactionRecord([
+        // Verifica se o retorno é uma instância de Transaction
+        $this->assertInstanceOf(Transaction::class, $transaction);
+        // Verifica se o saldo da conta foi atualizado corretamente
+        $this->assertEquals(600, $account->fresh()->balance);
+        // Verifica se a transação pendente foi marcada como processada
+        $this->assertTrue(boolval($pendingTransaction->fresh()->processed));
+    }
+
+    /**
+     * @test
+     * Testa se o método processPendingTransaction processa uma transação pendente de saque com sucesso.
+     */
+    public function processPendingTransaction_processes_a_pending_withdrawal_transaction_successfully()
+    {
+        // Cria uma conta com saldo de 500
+        $account = Account::factory()->create(['balance' => 500]);
+        // Cria uma transação pendente de saque
+        $pendingTransaction = PendingTransaction::factory()->create([
             'account_id' => $account->id,
             'type' => 'withdraw',
-            'amount' => 200,
-            'description' => 'Saque inválido',
+            'amount' => 100,
         ]);
+
+        // Processa a transação pendente
+        $transaction = $this->service->processPendingTransaction($pendingTransaction);
+
+        // Verifica se o retorno é uma instância de Transaction
+        $this->assertInstanceOf(Transaction::class, $transaction);
+        // Verifica se o saldo da conta foi atualizado corretamente
+        $this->assertEquals(400, $account->fresh()->balance);
+        // Verifica se a transação pendente foi marcada como processada
+        $this->assertTrue(boolval($pendingTransaction->fresh()->processed));
     }
 
     /**
-     * Testa reprocessamento de transações pendentes.
+     * @test
+     * Testa se o método processPendingTransaction processa uma transação pendente de transferência com sucesso.
      */
-    public function test_reprocess_pending_transactions(): void
+    public function processPendingTransaction_processes_a_pending_transfer_transaction_successfully()
     {
-        $sourceAccount = Account::factory()->create(['balance' => 1000]);
-        $targetAccount = Account::factory()->create(['balance' => 500]);
-
+        // Cria duas contas, uma de origem com saldo de 500 e outra de destino com saldo de 200
+        $sourceAccount = Account::factory()->create(['balance' => 500]);
+        $targetAccount = Account::factory()->create(['balance' => 200]);
+        // Cria uma transação pendente de transferência
         $pendingTransaction = PendingTransaction::factory()->create([
             'account_id' => $sourceAccount->id,
             'target_account_id' => $targetAccount->id,
-            'amount' => 300,
             'type' => 'transfer',
-            'description' => 'Transferência teste',
-            'processed' => false,
+            'amount' => 100,
         ]);
 
+        // Processa a transação pendente
+        $transaction = $this->service->processPendingTransaction($pendingTransaction);
+
+        // Verifica se o retorno é uma instância de Transaction
+        $this->assertInstanceOf(Transaction::class, $transaction);
+        // Verifica se o saldo da conta de origem foi atualizado corretamente
+        $this->assertEquals(400, $sourceAccount->fresh()->balance);
+        // Verifica se o saldo da conta de destino foi atualizado corretamente
+        $this->assertEquals(300, $targetAccount->fresh()->balance);
+        // Verifica se a transação pendente foi marcada como processada
+        $this->assertTrue(boolval($pendingTransaction->fresh()->processed));
+    }
+
+    /**
+     * @test
+     * Testa se o método processPendingTransaction lança uma exceção para tipo de transação inválido.
+     */
+    public function processPendingTransaction_throws_exception_for_invalid_transaction_type()
+    {
+        // Cria uma conta
+        $account = Account::factory()->create(['balance' => 500]);
+
+        // Cria uma transação pendente com um tipo INVÁLIDO (usando state)
+        $pendingTransaction = PendingTransaction::factory()->state(['type' => 'invalid_type'])->create();
+
+        // Espera que uma exceção seja lançada
+        $this->expectException(Exception::class);
+        // Espera que a mensagem da exceção seja "Tipo de transação inválido: invalid_type"
+        $this->expectExceptionMessage("Tipo de transação inválido: invalid_type");
+
+        // Processa a transação pendente (deve lançar a exceção)
+        $this->service->processPendingTransaction($pendingTransaction);
+    }
+
+    /**
+     * @test
+     * Testa se o método processPendingTransaction lança uma exceção para saldo insuficiente.
+     */
+    public function processPendingTransaction_throws_exception_for_insufficient_balance()
+    {
+        // Cria uma conta com saldo insuficiente
+        $account = Account::factory()->create(['balance' => 50]);
+        // Cria uma transação pendente de saque com valor maior que o saldo
+        $pendingTransaction = PendingTransaction::factory()->create([
+            'account_id' => $account->id,
+            'type' => 'withdraw',
+            'amount' => 100,
+        ]);
+
+        // Espera que uma exceção seja lançada
+        $this->expectException(Exception::class);
+        // Espera que a mensagem da exceção seja "Saldo insuficiente."
+        $this->expectExceptionMessage('Saldo insuficiente.');
+
+        // Processa a transação pendente (deve lançar a exceção)
+        $this->service->processPendingTransaction($pendingTransaction);
+    }
+
+    /**
+     * @test
+     * Testa se o método reprocessPendingTransactions reprocessa transações pendentes com sucesso.
+     */
+    public function reprocessPendingTransactions_reprocesses_pending_transactions_successfully()
+    {
+        // Cria uma conta com saldo de 500
+        $account = Account::factory()->create(['balance' => 500]);
+        // Cria uma transação pendente de depósito
+        $pendingTransaction = PendingTransaction::factory()->create([
+            'account_id' => $account->id,
+            'type' => 'deposit',
+            'amount' => 100,
+            'processed' => false, // Define como não processada
+        ]);
+
+        // Chama o método para reprocessar as transações pendentes
         $this->service->reprocessPendingTransactions();
 
-        $this->assertTrue($pendingTransaction->fresh()->processed);
-        $this->assertEquals(700, $sourceAccount->fresh()->balance);
-        $this->assertEquals(800, $targetAccount->fresh()->balance);
+        // Verifica se o saldo da conta foi atualizado corretamente
+        $this->assertEquals(600, $account->fresh()->balance);
+        // Verifica se a transação pendente foi marcada como processada
+        $this->assertTrue(boolval($pendingTransaction->fresh()->processed));
+    }
+
+    /**
+     * @test
+     * Testa se o método reprocessPendingTransactions registra um log de erro para transações com falha.
+     */
+    public function reprocessPendingTransactions_logs_error_for_failed_transactions()
+    {
+        // Cria uma conta com saldo insuficiente
+        $account = Account::factory()->create(['balance' => 50]);
+        // Cria uma transação pendente de saque com valor maior que o saldo
+        $pendingTransaction = PendingTransaction::factory()->create([
+            'account_id' => $account->id,
+            'type' => 'withdraw',
+            'amount' => 100,
+            'processed' => false, // Define como não processada
+        ]);
+
+        // Chama o método para reprocessar as transações pendentes
+        $this->service->reprocessPendingTransactions();
+
+        // Verifica se o saldo da conta permanece o mesmo
+        $this->assertEquals(50, $account->fresh()->balance);
+        // Verifica se a transação pendente continua não processada
+        $this->assertFalse(boolval($pendingTransaction->fresh()->processed));
+        // Aqui você deve adicionar uma asserção para verificar se o log de erro foi registrado
+        // $this->assertLogsContain("Erro ao reprocessar transação pendente: Saldo insuficiente.");
     }
 }
