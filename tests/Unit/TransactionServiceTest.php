@@ -138,18 +138,22 @@ class TransactionServiceTest extends TestCase
      */
     public function processPendingTransaction_throws_exception_for_invalid_transaction_type()
     {
-        // Cria uma conta
-        $account = Account::factory()->create(['balance' => 500]);
+        // Criação de uma conta de origem
+        $account = Account::factory()->create(['balance' => 1000]);
 
-        // Cria uma transação pendente com um tipo INVÁLIDO (usando state)
-        $pendingTransaction = PendingTransaction::factory()->state(['type' => 'invalid_type'])->create();
+        // Criação de uma transação pendente com tipo inválido
+        $pendingTransaction = PendingTransaction::factory()->make([
+            'account_id' => $account->id,
+            'type' => 'invalid_type', // Tipo inválido
+            'amount' => 500,
+            'processed' => false,
+        ]);
 
-        // Espera que uma exceção seja lançada
+        // Tente processar a transação e espere uma exceção
         $this->expectException(Exception::class);
-        // Espera que a mensagem da exceção seja "Tipo de transação inválido: invalid_type"
-        $this->expectExceptionMessage("Tipo de transação inválido: invalid_type");
+        $this->expectExceptionMessage("Tipo de transação inválido: {$pendingTransaction->type}");
 
-        // Processa a transação pendente (deve lançar a exceção)
+        // Execute o método de processamento
         $this->service->processPendingTransaction($pendingTransaction);
     }
 

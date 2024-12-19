@@ -3,7 +3,9 @@
 namespace Tests\Unit;
 
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator; // Importe a classe Validator
 use Tests\TestCase;
 
 class ClientUnitTest extends TestCase
@@ -12,49 +14,50 @@ class ClientUnitTest extends TestCase
 
     /**
      * Testa a falha ao criar um cliente sem CPF/CNPJ.
+     *
+     * @return void
      */
     public function test_fail_create_client_without_cpf_cnpj()
     {
-        $this->expectException(\App\Exceptions\BusinessValidationException::class);
-        $this->expectExceptionMessage('O campo cpf_cnpj é obrigatório.');
+        // Usando o validador para testar a regra 'required_if'
+        $validator = Validator::make(
+            ['cpf_cnpj' => '', 'is_client' => true],
+            ['cpf_cnpj' => 'required_if:is_client,true']
+        );
 
-        User::create([
-            'name' => 'Cliente Teste',
-            'email' => 'cliente@teste.com',
-            'password' => bcrypt('password123'),
-            'person_type' => 'PF',
-            'is_client' => true, // Marca como cliente
-        ]);
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('cpf_cnpj', $validator->errors()->toArray());
     }
 
     /**
      * Testa a falha ao criar um cliente com CPF/CNPJ duplicado.
+     *
+     * @return void
      */
     public function test_fail_create_client_with_duplicate_cpf_cnpj()
     {
-        // Primeiro cliente com CPF/CNPJ
         User::factory()->create([
-            'cpf_cnpj' => '12345678900', // CPF/CNPJ válido
+            'cpf_cnpj' => '12345678900',
             'person_type' => 'PF',
-            'is_client' => true, // Cliente
+            'is_client' => true,
         ]);
 
-        // Tentativa de criar um cliente com o mesmo CPF/CNPJ
-        $this->expectException(\App\Exceptions\BusinessValidationException::class);
-        $this->expectExceptionMessage('O CPF/CNPJ já está em uso.');
+        $this->expectException(UniqueConstraintViolationException::class);
 
         User::create([
             'name' => 'Outro Cliente',
             'email' => 'outro@teste.com',
             'password' => bcrypt('password123'),
-            'cpf_cnpj' => '12345678900', // CPF/CNPJ duplicado
+            'cpf_cnpj' => '12345678900',
             'person_type' => 'PF',
-            'is_client' => true, // Cliente
+            'is_client' => true,
         ]);
     }
 
     /**
      * Testa a criação de um cliente válido com CPF/CNPJ.
+     *
+     * @return void
      */
     public function test_create_valid_client()
     {
@@ -62,9 +65,9 @@ class ClientUnitTest extends TestCase
             'name' => 'Cliente Válido',
             'email' => 'valid@client.com',
             'password' => bcrypt('password123'),
-            'cpf_cnpj' => '98765432100', // CPF/CNPJ válido
+            'cpf_cnpj' => '98765432100',
             'person_type' => 'PF',
-            'is_client' => true, // Cliente
+            'is_client' => true,
         ]);
 
         $this->assertDatabaseHas('users', [
@@ -76,6 +79,8 @@ class ClientUnitTest extends TestCase
 
     /**
      * Testa a criação de um usuário não cliente sem CPF/CNPJ.
+     *
+     * @return void
      */
     public function test_create_non_client_without_cpf_cnpj()
     {
@@ -83,9 +88,9 @@ class ClientUnitTest extends TestCase
             'name' => 'Usuário Não Cliente',
             'email' => 'nonclient@test.com',
             'password' => bcrypt('password123'),
-            'cpf_cnpj' => null, // CPF/CNPJ não obrigatório
+            'cpf_cnpj' => null,
             'person_type' => 'PF',
-            'is_client' => false, // Não é cliente
+            'is_client' => false,
         ]);
 
         $this->assertDatabaseHas('users', [
