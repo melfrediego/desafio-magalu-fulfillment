@@ -13,25 +13,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($user) {
-            if (!$user->email) {
-                throw new \App\Exceptions\BusinessValidationException('O campo email é obrigatório.');
-            }
-
-            if ($user->is_client && !$user->cpf_cnpj) {
-                throw new \App\Exceptions\BusinessValidationException('O campo cpf_cnpj é obrigatório.');
-            }
-
-            if ($user->is_client && User::where('cpf_cnpj', $user->cpf_cnpj)->exists()) {
-                throw new \App\Exceptions\BusinessValidationException('O CPF/CNPJ já está em uso.');
-            }
-        });
-    }
-
     /**
      * Os atributos podem ser adicionados em massa.
      */
